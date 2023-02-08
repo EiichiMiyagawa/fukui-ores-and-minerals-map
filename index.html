@@ -1,0 +1,108 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+  <title>福井鉱石・鉱物マップ</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v7.1.0/ol.css">
+  <script src="https://cdn.jsdelivr.net/npm/ol@v7.1.0/dist/ol.js"></script>
+</head><body>
+  <h1 id=title></h1>
+  <div id="olmap" style="width:auto;height:600px;"></div>
+  <div id="popup" class="ol-popup">
+    <div id="popup-content"></div>
+  </div>
+  <hr />
+  (<a href="https://eiichimiyagawa.github.io/fukui-ores-and-minerals-map/data.csv" target="_blank">data</a>, <a href="https://github.com/EiichiMiyagawa/fukui-ores-and-minerals-map" target="_blank">src</a>)<br>
+  <p><a target="_blank" href="https://icons8.com/icon/OBmVbH2qOGwK/%E3%83%9E%E3%83%BC%E3%82%AB%E3%83%BC">マーカー</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a></p>
+  <p>参考文献：松原 聰「鉱物ウォーキングガイド 全国版」：丸善、渡辺 一夫「日本の石ころ標本箱」：誠文堂新光社、松原 聰「より深くより楽しく 鉱物・岩石紳士録」：学研、山口 充・佐伯 哲也「北陸の名城を歩く 福井編」：吉川弘文館</p>
+</div>
+
+<script type="module">
+  import { OLMap } from "https://eiichimiyagawa.github.io/OLMap/v1/OLMap.js";
+  import { CSV } from "https://js.sabae.cc/CSV.js";
+  
+  // iOS14以前に関する対応（top-level await未対応のため）
+  addEventListener("load", async () => {
+    title.textContent = document.title;
+    
+    const url = "./data.csv";
+    const data = await CSV.fetch("./data.csv");
+    const spotData = await CSV.toJSON(data);
+    
+    const map = new OLMap({
+      tileUrl: "https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png",
+      zoom: 10
+    });
+    
+    map.addTileLayer("pic", "https://cyberjapandata.gsi.go.jp/xyz/seamlessphoto/{z}/{x}/{y}.jpg");
+    const picLayer = map.getLayer("pic");
+    picLayer.setOpacity(0.6);
+
+    map.addVectorLayer("marker");
+
+    const show = () => {
+      const markerLayer = map.getLayer("marker");
+      markerLayer.getSource().clear(true);
+
+      if (spotData.length) {
+        spotData.forEach((spot) => {
+          map.addMarker(markerLayer, {
+            longitude: Number(spot["経度"]),
+            latitude: Number(spot["緯度"]),
+            content: `<p>${spot["スポット名"]}</p><p>${spot["備考"]}</p><hr><p>主な採取物</p><p>${spot["採取物"].replaceAll("\n", ", ")}</p>`,
+            icon: "./image/icon.png"
+          });
+        });
+      }
+    }
+
+    show();
+  });
+  
+</script>
+
+<style>
+  body {
+    text-align: center;
+    font-family: sans-serif;
+  }
+  textarea {
+    width: 70vw;
+    height: 8em;
+  }
+  #divsels {
+    margin-bottom: .5em;
+  }
+  #prefbox > * {
+    margin: .5em .2em;
+  }
+  .ol-popup {
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #cccccc;
+    bottom: 12px;
+    left: -50px;
+    min-width: 280px;
+  }
+  .ol-popup:after, .ol-popup:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+  .ol-popup:after {
+    border-top-color: white;
+    border-width: 10px;
+    left: 48px;
+    margin-left: -10px;
+  }
+  .ol-popup:before {
+    border-top-color: #cccccc;
+    border-width: 11px;
+    left: 48px;
+    margin-left: -11px;
+  }
+</style>
