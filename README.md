@@ -1,0 +1,1 @@
+# fukui-ores-and-minerals-map
